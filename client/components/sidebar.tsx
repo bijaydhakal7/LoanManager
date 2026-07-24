@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, LayoutDashboard, HandCoins, Receipt, CreditCard, Calculator, User } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight, LayoutDashboard, HandCoins, Receipt, Calculator, User } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/loans", label: "Loans", icon: HandCoins },
-  { href: "/emi", label: "EMI", icon: Calculator },
+  { href: "/interest", label: "Interest Calculator", icon: Calculator },
   { href: "/expenses", label: "Expenses", icon: Receipt },
-  { href: "/bills", label: "Bills", icon: CreditCard },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
@@ -64,16 +64,23 @@ export const Sidebar = ({ isOpen, onClose, collapsed, onToggleCollapsed }: Sideb
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition",
+                "relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition",
                 collapsed && "md:justify-center md:px-2",
                 active
-                  ? "bg-blue-50 text-blue-700"
+                  ? "text-blue-700"
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
               )}
               onClick={onClose}
             >
-              <Icon className="h-4 w-4" />
-              <span className={cn(collapsed && "md:hidden")}>{item.label}</span>
+              {active ? (
+                <motion.span
+                  layoutId="sidebar-active-pill"
+                  className="absolute inset-0 rounded-xl bg-blue-50"
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                />
+              ) : null}
+              <Icon className="relative h-4 w-4" />
+              <span className={cn("relative", collapsed && "md:hidden")}>{item.label}</span>
             </Link>
           );
         })}

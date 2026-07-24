@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { useCreateLoan, useUpdateLoan } from "@/features/loans/loan-mutations";
 import type { LoanStatus, LoanType } from "@/lib/types";
@@ -18,13 +19,12 @@ const emptyToUndefined = (value: unknown) => (value === "" ? undefined : value);
 
 const loanSchema = z.object({
   type: z.enum(["GIVEN", "TAKEN"]),
-  counterpartyName: z.string().min(1, "Counterparty is required").max(120),
-  amount: z.coerce.number().positive("Amount is required"),
+  counterpartyName: z.string().min(1, "Name is required").max(120),
+  amount: z.coerce.number().positive("Principal is required"),
   interestRate: z.coerce.number().min(0).max(100),
   startDate: z.string().min(1, "Start date is required"),
   dueDate: z.preprocess(emptyToUndefined, z.string().optional()),
   tenureMonths: z.preprocess(emptyToUndefined, z.coerce.number().int().positive().max(600).optional()),
-  emiAmount: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
   notes: z.preprocess(emptyToUndefined, z.string().max(1000).optional()),
 });
 
@@ -46,6 +46,7 @@ export const LoanForm = ({
   const createLoan = useCreateLoan();
   const updateLoan = useUpdateLoan();
   const [editStatus, setEditStatus] = useState<LoanStatus>(initialValues?.status ?? "ACTIVE");
+  const [loanType, setLoanType] = useState<LoanType>(initialValues?.type ?? "GIVEN");
 
   const form = useForm<LoanValues>({
     resolver: zodResolver(loanSchema),
@@ -57,7 +58,6 @@ export const LoanForm = ({
       startDate: initialValues?.startDate ?? new Date().toISOString().slice(0, 10),
       dueDate: initialValues?.dueDate ?? "",
       tenureMonths: initialValues?.tenureMonths ?? undefined,
-      emiAmount: initialValues?.emiAmount ?? undefined,
       notes: initialValues?.notes ?? "",
     },
   });
@@ -72,9 +72,9 @@ export const LoanForm = ({
       startDate: initialValues.startDate ?? new Date().toISOString().slice(0, 10),
       dueDate: initialValues.dueDate ?? "",
       tenureMonths: initialValues.tenureMonths ?? undefined,
-      emiAmount: initialValues.emiAmount ?? undefined,
       notes: initialValues.notes ?? "",
     });
+    if (initialValues.type) setLoanType(initialValues.type);
     if (initialValues.status) {
       setEditStatus(initialValues.status);
     }
@@ -90,7 +90,6 @@ export const LoanForm = ({
             interestRate: values.interestRate,
             dueDate: values.dueDate || undefined,
             tenureMonths: values.tenureMonths,
-            emiAmount: values.emiAmount,
             notes: values.notes || undefined,
             status: editStatus,
           },
@@ -98,26 +97,24 @@ export const LoanForm = ({
         toast.success("Loan updated");
       } else {
         await createLoan.mutateAsync({
-          type: values.type,
+          type: loanType,
           counterpartyName: values.counterpartyName,
           amount: values.amount,
           interestRate: values.interestRate,
           startDate: values.startDate,
           dueDate: values.dueDate || undefined,
           tenureMonths: values.tenureMonths,
-          emiAmount: values.emiAmount,
           notes: values.notes || undefined,
         });
-        toast.success("Loan created");
+        toast.success(loanType === "GIVEN" ? "Loan given recorded" : "Loan taken recorded");
         form.reset({
-          type: values.type,
+          type: loanType,
           counterpartyName: "",
           amount: 0,
           interestRate: values.interestRate,
           startDate: new Date().toISOString().slice(0, 10),
           dueDate: "",
           tenureMonths: undefined,
-          emiAmount: undefined,
           notes: "",
         });
       }
@@ -135,17 +132,23 @@ export const LoanForm = ({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className={containerClassName}>
       {mode === "create" ? (
-        <div className="space-y-2">
-          <Label htmlFor="loan-type">Type</Label>
-          <Select id="loan-type" {...form.register("type")}>
-            <option value="GIVEN">Given</option>
-            <option value="TAKEN">Taken</option>
-          </Select>
+        <div className="space-y-2 md:col-span-4">
+          <Label>Loan type</Label>
+          <Tabs value={loanType} onValueChange={(value) => setLoanType(value as LoanType)}>
+            <TabsList className="w-full">
+              <TabsTrigger value="GIVEN" className="data-[state=active]:!text-emerald-700">
+                Given (I lent money)
+              </TabsTrigger>
+              <TabsTrigger value="TAKEN" className="data-[state=active]:!text-rose-700">
+                Taken (I borrowed money)
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       ) : null}
 
       <div className={mode === "create" ? "space-y-2 md:col-span-3" : "space-y-2 md:col-span-4"}>
-        <Label htmlFor="loan-counterparty">Counterparty</Label>
+        <Label htmlFor="loan-counterparty">{loanType === "GIVEN" ? "Borrower's name" : "Lender's name"}</Label>
         <Input id="loan-counterparty" placeholder="John Doe" {...form.register("counterpartyName")} />
         {form.formState.errors.counterpartyName ? (
           <p className="text-xs text-red-600">{form.formState.errors.counterpartyName.message}</p>
@@ -154,7 +157,7 @@ export const LoanForm = ({
 
       {mode === "create" ? (
         <div className="space-y-2">
-          <Label htmlFor="loan-amount">Amount</Label>
+          <Label htmlFor="loan-amount">Principal amount</Label>
           <Input id="loan-amount" type="number" step="0.01" {...form.register("amount")} />
           {form.formState.errors.amount ? (
             <p className="text-xs text-red-600">{form.formState.errors.amount.message}</p>
@@ -163,7 +166,7 @@ export const LoanForm = ({
       ) : null}
 
       <div className="space-y-2">
-        <Label htmlFor="loan-interest">Interest %</Label>
+        <Label htmlFor="loan-interest">Interest rate (% p.a.)</Label>
         <Input id="loan-interest" type="number" step="0.1" {...form.register("interestRate")} />
         {form.formState.errors.interestRate ? (
           <p className="text-xs text-red-600">{form.formState.errors.interestRate.message}</p>
@@ -186,18 +189,10 @@ export const LoanForm = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="loan-tenure">Tenure (months)</Label>
+        <Label htmlFor="loan-tenure">Time (months)</Label>
         <Input id="loan-tenure" type="number" inputMode="numeric" placeholder="12" {...form.register("tenureMonths")} />
         {form.formState.errors.tenureMonths ? (
           <p className="text-xs text-red-600">{form.formState.errors.tenureMonths.message}</p>
-        ) : null}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="loan-emi">EMI amount</Label>
-        <Input id="loan-emi" type="number" step="0.01" placeholder="" {...form.register("emiAmount")} />
-        {form.formState.errors.emiAmount ? (
-          <p className="text-xs text-red-600">{form.formState.errors.emiAmount.message}</p>
         ) : null}
       </div>
 
@@ -226,12 +221,14 @@ export const LoanForm = ({
       ) : null}
 
       <div className="md:col-span-4">
-        <Button type="submit" disabled={createLoan.isPending || updateLoan.isPending}>
+        <Button type="submit" disabled={createLoan.isPending || updateLoan.isPending} className="w-full md:w-auto">
           {createLoan.isPending || updateLoan.isPending
             ? "Saving..."
             : mode === "edit"
               ? "Save Changes"
-              : "Add Loan"}
+              : loanType === "GIVEN"
+                ? "Record Loan Given"
+                : "Record Loan Taken"}
         </Button>
       </div>
     </form>

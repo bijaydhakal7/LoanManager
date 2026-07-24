@@ -21,8 +21,9 @@ export type Loan = {
   interestRate: number;
   startDate: string;
   dueDate?: string | null;
-  emiAmount?: number | null;
+  tenureMonths?: number | null;
   status: LoanStatus;
+  notes?: string | null;
   principal: number;
   accruedInterest: number;
   totalDue: number;
@@ -58,26 +59,16 @@ export type ExpenseSummary = {
   };
 };
 
-export type BillStatus = "PAID" | "UNPAID" | "OVERDUE";
-export type BillCategory = "UTILITIES" | "RENT" | "SUBSCRIPTIONS" | "INSURANCE" | "OTHER";
-export type BillRecurrence = "ONE_TIME" | "MONTHLY" | "YEARLY";
-
-export type Bill = {
-  id: number;
-  name: string;
-  amount: number;
-  dueDate: string;
-  recurrence: BillRecurrence;
-  category: BillCategory;
-  status: BillStatus;
-  paidDate?: string | null;
-};
-
 export type DashboardSummary = {
   totalGiven: number;
   totalTaken: number;
   netPosition: number;
   activeLoansCount: number;
+  interestReceivable: number;
+  interestPayable: number;
+  netInterestPosition: number;
+  monthlyExpenseTotal: number;
+  expenseByCategory: Array<{ category: ExpenseCategory; total: number }>;
   upcomingPayments: Array<{
     id: number;
     counterpartyName: string;
@@ -86,28 +77,25 @@ export type DashboardSummary = {
     type: LoanType;
   }>;
   recentExpenses: Expense[];
-  overdueBills: Bill[];
 };
 
-export type EmiCalculation = {
-  emi: number;
-  totalInterest: number;
+export type InterestTimeUnit = "DAYS" | "MONTHS" | "YEARS";
+export type InterestMode = "SIMPLE" | "COMPOUND";
+export type CompoundingFrequency = "ANNUALLY" | "SEMI_ANNUALLY" | "QUARTERLY" | "MONTHLY";
+
+export type InterestCalculation = {
+  principal: number;
+  interest: number;
   totalAmount: number;
+  ratePercent: number;
+  timeInYears: number;
 };
 
-export type EmiEntry = {
-  id: number;
-  loanName: string;
-  amount: number;
-  dueDate: string;
-  status: "OVERDUE" | "UPCOMING";
-  progressPercentage: number;
-};
-
-export type UpcomingEmi = {
-  id: number;
-  loanName: string;
-  amount: number;
-  dueDate: string | null;
-  type: LoanType;
+export type Session = {
+  sid: string;
+  userAgent: string;
+  ipAddress: string;
+  createdAt: string;
+  expiresAt: string;
+  isCurrent: boolean;
 };

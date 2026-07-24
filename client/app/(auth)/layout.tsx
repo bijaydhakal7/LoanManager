@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <p className="text-sm uppercase tracking-[0.2em] text-emerald-600">Loan Manager</p>
             <h1 className="mt-3 text-3xl font-semibold text-slate-900">Build a clear financial path.</h1>
             <p className="mt-2 text-sm text-slate-500">
-              Track loans, bills, and expenses with the clarity of a modern operations dashboard.
+              Track loans, expenses, and interest with the clarity of a modern finance dashboard.
             </p>
           </div>
           {children}

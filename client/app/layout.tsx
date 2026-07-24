@@ -15,7 +15,7 @@ const jetBrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Loan Manager",
-  description: "Track loans, bills, and expenses with clarity.",
+  description: "Track loans, expenses, and interest with clarity.",
 };
 
 export default function RootLayout({

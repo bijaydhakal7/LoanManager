@@ -1,6 +1,6 @@
 // Request body types for API endpoints
 
-import { LoanCreateInput, ExpenseCreateInput, BillCreateInput, RepaymentCreateInput } from './index.js';
+import { LoanCreateInput, ExpenseCreateInput, RepaymentCreateInput, InterestCalculateInput } from './index.js';
 
 // ============================================
 // AUTH REQUEST TYPES
@@ -44,7 +44,7 @@ export interface CreateRepaymentRequest extends RepaymentCreateInput {}
 export interface CreateExpenseRequest extends ExpenseCreateInput {}
 
 // ============================================
-// BILL REQUEST TYPES
+// INTEREST CALCULATOR REQUEST TYPES
 // ============================================
 
-export interface CreateBillRequest extends BillCreateInput {}
+export interface CalculateInterestRequest extends InterestCalculateInput {}

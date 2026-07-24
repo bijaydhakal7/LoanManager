@@ -18,11 +18,22 @@ export const sessionRepository = {
   },
 
   findActiveByUser(userId: number) {
-    return prisma.authSession.findMany({ where: { userId, status: "ACTIVE" } });
+    return prisma.authSession.findMany({ where: { userId, status: "ACTIVE" }, orderBy: { updatedAt: "desc" } });
+  },
+
+  findBySid(userId: number, sid: string) {
+    return prisma.authSession.findFirst({ where: { userId, sid } });
   },
 
   revokeByTokenHash(tokenHash: string) {
     return prisma.authSession.updateMany({ where: { tokenHash }, data: { status: "REVOKED", revokedAt: new Date() } as any });
+  },
+
+  revokeBySid(userId: number, sid: string) {
+    return prisma.authSession.updateMany({
+      where: { userId, sid, status: "ACTIVE" },
+      data: { status: "REVOKED", revokedAt: new Date() } as any,
+    });
   },
 
   revokeAllByUser(userId: number) {

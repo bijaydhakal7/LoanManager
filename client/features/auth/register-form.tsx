@@ -33,7 +33,7 @@ export const RegisterForm = () => {
     <Card className="w-full max-w-md border-slate-200 bg-white/95 shadow-xl">
       <CardHeader>
         <CardTitle className="text-2xl">Create your account</CardTitle>
-        <p className="text-sm text-slate-500">Start tracking loans, bills, and spending today.</p>
+        <p className="text-sm text-slate-500">Start tracking loans, spending, and interest today.</p>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

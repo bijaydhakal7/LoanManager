@@ -1,7 +1,7 @@
 import { apiClient, baseClient } from "@/lib/api/client";
 import { env } from "@/lib/config";
 import { getCsrfToken } from "@/lib/auth/csrf";
-import type { ApiResponse, User } from "@/lib/types";
+import type { ApiResponse, Session, User } from "@/lib/types";
 
 export type LoginPayload = {
   email: string;
@@ -62,5 +62,17 @@ export const authApi = {
         },
       },
     );
+  },
+
+  async listSessions() {
+    const { data } = await apiClient.get<ApiResponse<Session[]>>("/auth/sessions");
+    return data.data;
+  },
+
+  async revokeSession(sid: string) {
+    const csrf = getCsrfToken();
+    await apiClient.delete(`/auth/sessions/${sid}`, {
+      headers: csrf ? { [env.csrfHeaderName]: csrf } : undefined,
+    });
   },
 };

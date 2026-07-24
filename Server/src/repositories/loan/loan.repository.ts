@@ -63,18 +63,6 @@ export const loanRepository = {
     });
   },
 
-  listEmiLoans(userId: number) {
-    return prisma.loan.findMany({
-      where: {
-        userId,
-        status: "ACTIVE",
-        emiAmount: { not: null },
-      },
-      orderBy: { dueDate: "asc" },
-      include: { repayments: true },
-    });
-  },
-
   listUpcomingLoans(userId: number, from: Date, to: Date) {
     return prisma.loan.findMany({
       where: {

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useDeleteExpense } from "@/features/expenses/expense-mutations";
 import { getApiErrorMessage } from "@/lib/api/errors";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import type { Expense } from "@/lib/types";
 import type { ExpenseCategory } from "@/lib/types";
 

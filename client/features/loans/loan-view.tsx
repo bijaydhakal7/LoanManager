@@ -14,7 +14,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { LoanForm } from "@/features/loans/loan-form";
 import { useDeleteLoan } from "@/features/loans/loan-mutations";
 import { getApiErrorMessage } from "@/lib/api/errors";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import type { Loan, LoanStatus, LoanType } from "@/lib/types";
 
 const PAGE_SIZES = [5, 10, 20];
@@ -163,7 +163,6 @@ export const LoanView = () => {
                 interestRate: editLoan.interestRate,
                 startDate: editLoan.startDate,
                 dueDate: editLoan.dueDate ?? "",
-                emiAmount: editLoan.emiAmount ?? undefined,
                 status: editLoan.status,
               }}
               onSuccess={() => setEditLoan(null)}

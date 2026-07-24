@@ -20,7 +20,6 @@ export const loanApi = {
     startDate: string;
     dueDate?: string;
     tenureMonths?: number;
-    emiAmount?: number;
     notes?: string;
   }) {
     const { data } = await apiClient.post<ApiResponse<{ id: number }>>("/loans", payload);
@@ -32,7 +31,6 @@ export const loanApi = {
     interestRate?: number;
     dueDate?: string;
     tenureMonths?: number;
-    emiAmount?: number;
     status?: "ACTIVE" | "CLOSED" | "OVERDUE";
     notes?: string;
   }) {

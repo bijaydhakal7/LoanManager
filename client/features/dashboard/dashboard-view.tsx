@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { motion, type Variants } from "framer-motion";
 import { useDashboardSummary } from "@/features/dashboard/dashboard-queries";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,40 +12,53 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LoanForm } from "@/features/loans/loan-form";
 import { ExpenseForm } from "@/features/expenses/expense-form";
-import { BillForm } from "@/features/bills/bill-form";
+import { ArrowUpRight, ArrowDownRight, Wallet, HandCoins, Calculator, Landmark } from "lucide-react";
 import {
-  CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  XAxis,
-  YAxis,
 } from "recharts";
+
+const CATEGORY_COLORS: Record<string, string> = {
+  FOOD: "#f59e0b",
+  TRANSPORT: "#3b82f6",
+  SHOPPING: "#a855f7",
+  BILLS: "#ef4444",
+  ENTERTAINMENT: "#ec4899",
+  HEALTHCARE: "#10b981",
+  OTHER: "#64748b",
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.35, ease: "easeOut" as const },
+  }),
+};
 
 export const DashboardView = () => {
   const { data, isLoading } = useDashboardSummary();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [quickAddType, setQuickAddType] = useState<"loan" | "expense" | "bill">("loan");
+  const [quickAddType, setQuickAddType] = useState<"loan" | "expense">("loan");
 
   const loanPieData = useMemo(() => {
     if (!data) return [] as Array<{ name: string; value: number; color: string }>;
     return [
-      { name: "Given", value: data.totalGiven, color: "var(--brand-600)" },
-      { name: "Taken", value: data.totalTaken, color: "var(--danger-text)" },
+      { name: "Given", value: data.totalGiven, color: "#10b981" },
+      { name: "Taken", value: data.totalTaken, color: "#ef4444" },
     ];
   }, [data]);
 
-  const recentExpenseSeries = useMemo(() => {
-    if (!data?.recentExpenses?.length) return [] as Array<{ label: string; amount: number }>;
-
-    const expenses = [...data.recentExpenses].reverse();
-    return expenses.map((expense) => ({
-      label: formatDate(expense.expenseDate),
-      amount: expense.amount,
+  const expensePieData = useMemo(() => {
+    if (!data?.expenseByCategory?.length) return [] as Array<{ name: string; value: number; color: string }>;
+    return data.expenseByCategory.map((row) => ({
+      name: row.category,
+      value: row.total,
+      color: CATEGORY_COLORS[row.category] ?? "#64748b",
     }));
   }, [data]);
 
@@ -69,84 +84,131 @@ export const DashboardView = () => {
     );
   }
 
+  const summaryCards = [
+    {
+      label: "Total Given",
+      value: data.totalGiven,
+      icon: ArrowUpRight,
+      accent: "text-emerald-600",
+      bg: "bg-emerald-50",
+    },
+    {
+      label: "Total Taken",
+      value: data.totalTaken,
+      icon: ArrowDownRight,
+      accent: "text-rose-600",
+      bg: "bg-rose-50",
+    },
+    {
+      label: "Net Position",
+      value: data.netPosition,
+      icon: Wallet,
+      accent: data.netPosition >= 0 ? "text-emerald-600" : "text-rose-600",
+      bg: data.netPosition >= 0 ? "bg-emerald-50" : "bg-rose-50",
+    },
+    {
+      label: "This Month's Expenses",
+      value: data.monthlyExpenseTotal,
+      icon: Landmark,
+      accent: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <PageHeader title="Dashboard" description="Snapshot of your finances" />
-        <Dialog open={quickAddOpen} onOpenChange={setQuickAddOpen}>
-          <DialogTrigger asChild>
-            <Button>Quick Add</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Quick Add</DialogTitle>
-              <DialogDescription>Create a loan, expense, or bill.</DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant={quickAddType === "loan" ? "default" : "outline"}
-                onClick={() => setQuickAddType("loan")}
-              >
-                Loan
-              </Button>
-              <Button
-                variant={quickAddType === "expense" ? "default" : "outline"}
-                onClick={() => setQuickAddType("expense")}
-              >
-                Expense
-              </Button>
-              <Button
-                variant={quickAddType === "bill" ? "default" : "outline"}
-                onClick={() => setQuickAddType("bill")}
-              >
-                Bill
-              </Button>
-            </div>
-            {quickAddType === "loan" ? (
-              <LoanForm variant="dialog" onSuccess={() => setQuickAddOpen(false)} />
-            ) : null}
-            {quickAddType === "expense" ? (
-              <ExpenseForm variant="dialog" onSuccess={() => setQuickAddOpen(false)} />
-            ) : null}
-            {quickAddType === "bill" ? (
-              <BillForm variant="dialog" onSuccess={() => setQuickAddOpen(false)} />
-            ) : null}
-          </DialogContent>
-        </Dialog>
+        <PageHeader title="Dashboard" description="A snapshot of what you owe, what's owed to you, and where your money goes." />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/interest" className="flex items-center gap-2">
+              <Calculator className="h-4 w-4" />
+              Interest Calculator
+            </Link>
+          </Button>
+          <Dialog open={quickAddOpen} onOpenChange={setQuickAddOpen}>
+            <DialogTrigger asChild>
+              <Button>Quick Add</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Quick Add</DialogTitle>
+                <DialogDescription>Record a loan or an expense.</DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant={quickAddType === "loan" ? "default" : "outline"}
+                  onClick={() => setQuickAddType("loan")}
+                >
+                  <HandCoins className="mr-1.5 h-4 w-4" />
+                  Loan
+                </Button>
+                <Button
+                  variant={quickAddType === "expense" ? "default" : "outline"}
+                  onClick={() => setQuickAddType("expense")}
+                >
+                  <Wallet className="mr-1.5 h-4 w-4" />
+                  Expense
+                </Button>
+              </div>
+              {quickAddType === "loan" ? (
+                <LoanForm variant="dialog" onSuccess={() => setQuickAddOpen(false)} />
+              ) : null}
+              {quickAddType === "expense" ? (
+                <ExpenseForm variant="dialog" onSuccess={() => setQuickAddOpen(false)} />
+              ) : null}
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-slate-500">Total Given</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold text-blue-700">
-            {formatCurrency(data.totalGiven)}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-slate-500">Total Taken</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold text-red-600">
-            {formatCurrency(data.totalTaken)}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-slate-500">Net Position</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold text-emerald-600">
-            {formatCurrency(data.netPosition)}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-slate-500">Active Loans</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold text-slate-900">
-            {data.activeLoansCount}
-          </CardContent>
-        </Card>
+        {summaryCards.map((card, i) => (
+          <motion.div key={card.label} custom={i} variants={cardVariants} initial="hidden" animate="show">
+            <Card>
+              <CardHeader className="flex-row items-center justify-between space-y-0 pb-0">
+                <CardTitle className="text-sm text-slate-500">{card.label}</CardTitle>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${card.bg}`}>
+                  <card.icon className={`h-4 w-4 ${card.accent}`} />
+                </span>
+              </CardHeader>
+              <CardContent className={`text-2xl font-semibold ${card.accent}`}>
+                {formatCurrency(card.value)}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <motion.div custom={4} variants={cardVariants} initial="hidden" animate="show">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm text-slate-500">Interest Receivable</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xl font-semibold text-emerald-600">
+              {formatCurrency(data.interestReceivable)}
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div custom={5} variants={cardVariants} initial="hidden" animate="show">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm text-slate-500">Interest Payable</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xl font-semibold text-rose-600">
+              {formatCurrency(data.interestPayable)}
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div custom={6} variants={cardVariants} initial="hidden" animate="show">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm text-slate-500">Active Loans</CardTitle>
+            </CardHeader>
+            <CardContent className="text-xl font-semibold text-slate-900">{data.activeLoansCount}</CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -182,23 +244,34 @@ export const DashboardView = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Expenses</CardTitle>
+            <CardTitle>Expenses by Category (this month)</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentExpenseSeries.length === 0 ? (
-              <p className="text-sm text-slate-500">No expenses yet.</p>
+            {expensePieData.length === 0 ? (
+              <p className="flex h-64 items-center justify-center text-sm text-slate-500">No expenses recorded this month.</p>
             ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={recentExpenseSeries} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" />
-                    <XAxis dataKey="label" tick={{ fill: "var(--text-secondary)", fontSize: 12 }} hide />
-                    <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 12 }} width={60} tickFormatter={(v) => String(v)} />
-                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                    <Line type="monotone" dataKey="amount" stroke="var(--brand-600)" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={expensePieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2}>
+                        {expensePieData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-slate-600">
+                  {expensePieData.map((entry) => (
+                    <div key={entry.name} className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                      <span>{entry.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -207,7 +280,7 @@ export const DashboardView = () => {
       <div className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader>
-            <CardTitle>Upcoming Payments</CardTitle>
+            <CardTitle>Upcoming Payments (next 30 days)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -233,20 +306,20 @@ export const DashboardView = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Overdue Bills</CardTitle>
+            <CardTitle>Recent Expenses</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {data.overdueBills.length === 0 ? (
-                <p className="text-sm text-slate-500">No overdue bills.</p>
+              {data.recentExpenses.length === 0 ? (
+                <p className="text-sm text-slate-500">No expenses yet.</p>
               ) : (
-                data.overdueBills.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between rounded-xl border border-slate-200 p-3">
+                data.recentExpenses.slice(0, 5).map((expense) => (
+                  <div key={expense.id} className="flex items-center justify-between rounded-xl border border-slate-200 p-3">
                     <div>
-                      <p className="text-sm font-medium text-slate-900">{bill.name}</p>
-                      <p className="text-xs text-slate-500">Due {formatDate(bill.dueDate)}</p>
+                      <p className="text-sm font-medium text-slate-900">{expense.description || expense.category}</p>
+                      <p className="text-xs text-slate-500">{formatDate(expense.expenseDate)}</p>
                     </div>
-                    <Badge variant="danger">Overdue</Badge>
+                    <p className="text-sm font-semibold text-slate-900">{formatCurrency(expense.amount)}</p>
                   </div>
                 ))
               )}

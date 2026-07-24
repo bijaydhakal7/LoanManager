@@ -38,7 +38,6 @@ export interface Loan {
     interestRate: number;
     startDate: Date;
     dueDate: Date | null;
-    emiAmount: number | null;
     tenureMonths: number | null;
     status: LoanStatus;
     notes: string | null;
@@ -95,13 +94,13 @@ export interface RepaymentCreateInput {
 // EXPENSE TYPES
 // ============================================
 
-export type ExpenseCategory = 
-    | 'FOOD' 
-    | 'TRANSPORT' 
-    | 'SHOPPING' 
-    | 'BILLS' 
-    | 'ENTERTAINMENT' 
-    | 'HEALTHCARE' 
+export type ExpenseCategory =
+    | 'FOOD'
+    | 'TRANSPORT'
+    | 'SHOPPING'
+    | 'BILLS'
+    | 'ENTERTAINMENT'
+    | 'HEALTHCARE'
     | 'OTHER';
 
 export interface Expense {
@@ -122,32 +121,20 @@ export interface ExpenseCreateInput {
 }
 
 // ============================================
-// BILL TYPES
+// INTEREST CALCULATOR TYPES
 // ============================================
 
-export type BillRecurrence = 'ONE_TIME' | 'MONTHLY' | 'YEARLY';
-export type BillStatus = 'PAID' | 'UNPAID' | 'OVERDUE';
-export type BillCategory = 'UTILITIES' | 'RENT' | 'SUBSCRIPTIONS' | 'INSURANCE' | 'OTHER';
+export type InterestTimeUnit = 'DAYS' | 'MONTHS' | 'YEARS';
+export type InterestMode = 'SIMPLE' | 'COMPOUND';
+export type CompoundingFrequency = 'ANNUALLY' | 'SEMI_ANNUALLY' | 'QUARTERLY' | 'MONTHLY';
 
-export interface Bill {
-    id: number;
-    userId: number;
-    name: string;
-    amount: number;
-    dueDate: Date;
-    recurrence: BillRecurrence;
-    category: BillCategory;
-    status: BillStatus;
-    paidDate: Date | null;
-    createdAt: Date;
-}
-
-export interface BillCreateInput {
-    name: string;
-    amount: number;
-    dueDate: Date;
-    recurrence?: BillRecurrence;
-    category?: BillCategory;
+export interface InterestCalculateInput {
+    principal: number;
+    ratePercent: number;
+    time: number;
+    timeUnit: InterestTimeUnit;
+    mode: InterestMode;
+    compoundingFrequency?: CompoundingFrequency;
 }
 
 // ============================================
@@ -176,6 +163,11 @@ export interface DashboardSummary {
     totalTaken: number;
     netPosition: number;
     activeLoansCount: number;
+    interestReceivable: number;
+    interestPayable: number;
+    netInterestPosition: number;
+    monthlyExpenseTotal: number;
+    expenseByCategory: Array<{ category: ExpenseCategory; total: number }>;
     upcomingPayments: Array<{
         id: number;
         counterpartyName: string;
@@ -184,5 +176,4 @@ export interface DashboardSummary {
         type: LoanType;
     }>;
     recentExpenses: Array<Expense>;
-    overdueBills: Array<Bill>;
 }

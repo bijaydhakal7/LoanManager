@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useCreateExpense, useUpdateExpense } from "@/features/expenses/expense-mutations";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { Button } from "@/components/ui/button";

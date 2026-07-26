@@ -20,7 +20,8 @@ export const setRefreshCookie = (res: Response, token: string) => {
   res.cookie(env.refreshCookieName, token, {
     httpOnly: true,
     secure: env.cookieSecure,
-    sameSite: env.cookieSecure ? "none" : "lax",
+    sameSite: "none", 
+    // sameSite: env.cookieSecure ? "none" : "lax",
     path: "/api/auth",
     maxAge,
   });
@@ -35,7 +36,8 @@ export const setCsrfCookie = (res: Response, csrfToken: string) => {
   res.cookie(env.csrfCookieName, csrfToken, {
     httpOnly: false,
     secure: env.cookieSecure,
-    sameSite: env.cookieSecure ? "none" : "lax",
+    sameSite: "none" ,
+    // sameSite: env.cookieSecure ? "none" : "lax",
     path: "/",
     maxAge: 1000 * 60 * 60 * 24 * 7,
   });

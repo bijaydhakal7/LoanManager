@@ -146,6 +146,7 @@ export const authService = {
 
     // issue new access token (respect user's tokenVersion)
     const user = await authRepository.findById(payload.userId);
+    if (!user) throw new AppError("User not found", 401); 
     const tokenVersion = (user as any)?.tokenVersion ?? 0;
     const accessToken = signAccessToken(payload.userId, user?.email ?? "", tokenVersion);
 

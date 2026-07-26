@@ -3,7 +3,6 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import csurf from "csurf";
 import { env } from "./config/env.js";
 import prisma from "./lib/prisma.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
@@ -16,16 +15,13 @@ const app = express();
 app.use(helmet());
 app.use(
     cors({
-        origin: env.corsOrigin === "*" ? true : env.corsOrigin,
+        origin: env.corsOrigin === "http://localhost:3000" ? true : env.corsOrigin,
         credentials: true,
     }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-// CSRF protection for stateful endpoints that rely on cookies (refresh, logout)
-const csrfProtection = csurf({ cookie: true });
 
 app.use(
     "/api",
@@ -42,15 +38,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api", apiRouter);
-app.get("/api/auth/csrf-token", (req, res) => {
-    // provide CSRF token to client for including in state-changing requests
-    try {
-        const token = (req as any).csrfToken ? (req as any).csrfToken() : null;
-        res.json({ success: true, csrfToken: token });
-    } catch {
-        res.json({ success: true, csrfToken: null });
-    }
-});
+
 app.use(notFoundHandler);
 app.use(errorHandler);
 

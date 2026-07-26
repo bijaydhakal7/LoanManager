@@ -19,7 +19,7 @@ export const setRefreshCookie = (res: Response, token: string) => {
 
   res.cookie(env.refreshCookieName, token, {
     httpOnly: true,
-    secure: env.cookieSecure,
+    secure: true,
     sameSite: "none", 
     // sameSite: env.cookieSecure ? "none" : "lax",
     path: "/api/auth",
@@ -35,7 +35,7 @@ export const setCsrfCookie = (res: Response, csrfToken: string) => {
   // Non-HttpOnly cookie so frontend can read and send as header for double-submit CSRF
   res.cookie(env.csrfCookieName, csrfToken, {
     httpOnly: false,
-    secure: env.cookieSecure,
+    secure: true,
     sameSite: "none" ,
     // sameSite: env.cookieSecure ? "none" : "lax",
     path: "/",

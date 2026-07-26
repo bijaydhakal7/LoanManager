@@ -38,8 +38,18 @@ export const sessionRepository = {
 
   revokeAllByUser(userId: number) {
     return prisma.authSession.updateMany({ where: { userId }, data: { status: "REVOKED", revokedAt: new Date() } as any });
+    
   },
-
+pruneStaleSessions(revokedBefore: Date) {
+    return prisma.authSession.deleteMany({
+      where: {
+        OR: [
+          { status: { in: ["REPLACED", "REVOKED"] }, revokedAt: { lt: revokedBefore } },
+          { status: "ACTIVE", expiresAt: { lt: new Date() } },
+        ],
+      },
+    });
+  },
   markReplaced(oldHash: string, newHash: string) {
     return prisma.authSession.updateMany({ where: { tokenHash: oldHash }, data: { status: "REPLACED", replacedBy: newHash, revokedAt: new Date() } as any });
   },

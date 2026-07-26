@@ -31,6 +31,7 @@ export const authService = {
 
     // Do not issue tokens on register. Client should call /login to receive tokens.
     return { user: toUserResponse(user) };
+  
   },
 
   async login(email: string, password: string, req?: Request, res?: Response) {
@@ -183,6 +184,11 @@ export const authService = {
       expiresAt: session.expiresAt,
       isCurrent: currentHash !== null && session.tokenHash === currentHash,
     }));
+  },
+  async pruneStaleSessions() {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const result = await sessionRepository.pruneStaleSessions(thirtyDaysAgo);
+    return result.count; // number of rows deleted
   },
 
   async revokeSession(userId: number, sid: string) {

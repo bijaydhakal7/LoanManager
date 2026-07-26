@@ -8,6 +8,8 @@ import { env } from "./config/env.js";
 import prisma from "./lib/prisma.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 import apiRouter from "./routes/index.js";
+import cron from "node-cron";
+import { authService } from "./services/auth.service.js";
 
 const app = express();
 
@@ -69,4 +71,10 @@ process.on("SIGINT", () => {
 
 process.on("SIGTERM", () => {
     void shutdown();
+});
+
+cron.schedule("0 3 * * *", () => {   // every day at 3am
+  authService.pruneStaleSessions().then((count) =>
+    console.log(`[cron] Pruned ${count} stale session(s).`)
+  );
 });

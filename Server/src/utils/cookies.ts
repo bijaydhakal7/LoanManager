@@ -1,6 +1,8 @@
 import type { Response } from "express";
 import { env } from "../config/env.js";
 
+const isSecure = env.cookieSecure;
+
 export const refreshTokenMaxAgeMs = (): number => {
   // parse simple duration like '7d' or '15m'
   if (env.refreshTokenExpiresIn.endsWith("d")) {
@@ -19,9 +21,8 @@ export const setRefreshCookie = (res: Response, token: string) => {
 
   res.cookie(env.refreshCookieName, token, {
     httpOnly: true,
-    secure: true,
-    sameSite: "none", 
-    // sameSite: env.cookieSecure ? "none" : "lax",
+    secure: isSecure,
+    sameSite: isSecure ? "none" : "lax",
     path: "/api/auth",
     maxAge,
   });
@@ -35,9 +36,8 @@ export const setCsrfCookie = (res: Response, csrfToken: string) => {
   // Non-HttpOnly cookie so frontend can read and send as header for double-submit CSRF
   res.cookie(env.csrfCookieName, csrfToken, {
     httpOnly: false,
-    secure: true,
-    sameSite: "none" ,
-    // sameSite: env.cookieSecure ? "none" : "lax",
+    secure: isSecure,
+    sameSite: isSecure ? "none" : "lax",
     path: "/",
     maxAge: 1000 * 60 * 60 * 24 * 7,
   });

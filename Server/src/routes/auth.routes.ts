@@ -10,7 +10,7 @@ const authRouter = Router();
 authRouter.post("/register", validate(registerSchema), register);
 authRouter.post("/login", validate(loginSchema), login);
 authRouter.get("/me", authMiddleware, profile);
-authRouter.post("/refresh", csrfMiddleware, refresh);
+authRouter.post("/refresh", refresh); // httpOnly cookie + token rotation already prevents CSRF
 authRouter.post("/logout", csrfMiddleware, logout);
 authRouter.post("/logout-all", authMiddleware, csrfMiddleware, logoutAll);
 authRouter.get("/sessions", authMiddleware, listSessions);

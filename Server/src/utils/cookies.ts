@@ -23,13 +23,13 @@ export const setRefreshCookie = (res: Response, token: string) => {
     httpOnly: true,
     secure: isSecure,
     sameSite: isSecure ? "none" : "lax",
-    path: "/api/auth",
+    path: "/",
     maxAge,
   });
 };
 
 export const clearRefreshCookie = (res: Response) => {
-  res.clearCookie(env.refreshCookieName, { path: "/api/auth" });
+  res.clearCookie(env.refreshCookieName, { path: "/" });
 };
 
 export const setCsrfCookie = (res: Response, csrfToken: string) => {

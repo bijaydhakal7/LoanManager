@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
       {
         source: "/api/proxy/:path*",
         // In Vercel, this will securely proxy the request to the Railway backend
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`, 
+        // We append /api here because your Express server mounts routes under /api
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`, 
       },
     ];
   },

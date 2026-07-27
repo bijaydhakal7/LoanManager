@@ -49,6 +49,7 @@ export const authService = {
     const accessToken = signAccessToken(user.id, user.email, (user as any).tokenVersion ?? 0);
 
     // If response is provided, create refresh session and set cookie (moved from controller)
+    let csrf: string | undefined;
     if (req && res) {
       const sid = generateSid();
       const familyId = uuidv4();
@@ -83,12 +84,13 @@ export const authService = {
 
       setRefreshCookie(res, refreshRaw);
       // set CSRF token for double-submit protection
-      const csrf = cryptoRandom();
+      csrf = cryptoRandom();
       setCsrfCookie(res, csrf);
     }
 
     return {
       accessToken,
+      csrfToken: csrf,
       user: toUserResponse(user),
     };
   },
@@ -153,7 +155,7 @@ export const authService = {
     setRefreshCookie(res, newRefreshRaw);
     const csrf = cryptoRandom();
     setCsrfCookie(res, csrf);
-    return accessToken;
+    return { accessToken, csrfToken: csrf };
   },
 
   async logout(req: Request, res: Response) {

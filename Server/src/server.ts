@@ -62,7 +62,7 @@ process.on("SIGTERM", () => {
 });
 
 cron.schedule("0 3 * * *", () => {   // every day at 3am
-  authService.pruneStaleSessions().then((count) =>
-    console.log(`[cron] Pruned ${count} stale session(s).`)
-  );
+    authService.pruneStaleSessions().then((count) =>
+        console.log(`[cron] Pruned ${count} stale session(s).`)
+    );
 });

@@ -14,12 +14,15 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const result = await authService.login(email, password, req, res);
-  ok(res, { accessToken: result.accessToken, user: result.user }, "Login successful");
+  // Include csrfToken in the body so the frontend can store it in localStorage.
+  // document.cookie cannot read cross-origin cookies, so the cookie alone is insufficient.
+  ok(res, { accessToken: result.accessToken, user: result.user, csrfToken: result.csrfToken }, "Login successful");
 });
 
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
-  const accessToken = await authService.refresh(req, res);
-  ok(res, { accessToken }, "Token rotated");
+  const { accessToken, csrfToken } = await authService.refresh(req, res);
+  // Return the new csrfToken in the body so the frontend can update its localStorage copy.
+  ok(res, { accessToken, csrfToken }, "Token rotated");
 });
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {

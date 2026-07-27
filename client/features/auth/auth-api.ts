@@ -1,6 +1,6 @@
 import { apiClient, baseClient } from "@/lib/api/client";
 import { env } from "@/lib/config";
-import { getCsrfToken } from "@/lib/auth/csrf";
+import { getCsrfToken, saveCsrfToken, clearCsrfToken } from "@/lib/auth/csrf";
 import type { ApiResponse, Session, User } from "@/lib/types";
 
 export type LoginPayload = {
@@ -16,10 +16,12 @@ export type RegisterPayload = {
 
 export const authApi = {
   async login(payload: LoginPayload) {
-    const { data } = await baseClient.post<ApiResponse<{ accessToken: string; user: User }>>(
+    const { data } = await baseClient.post<ApiResponse<{ accessToken: string; user: User; csrfToken: string }>>(
       "/auth/login",
       payload,
     );
+    // Save CSRF to localStorage — document.cookie can't read cross-origin backend cookies
+    if (data.data.csrfToken) saveCsrfToken(data.data.csrfToken);
     return data.data;
   },
 
@@ -48,6 +50,7 @@ export const authApi = {
         },
       },
     );
+    clearCsrfToken();
   },
 
   async logoutAll() {
@@ -62,6 +65,7 @@ export const authApi = {
         },
       },
     );
+    clearCsrfToken();
   },
 
   async listSessions() {
